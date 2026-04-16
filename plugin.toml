@@ -14,4 +14,8 @@ obcx_min_version = "1.1.0"
 required_plugins = []
 
 [build]
+# List vcpkg package names your plugin needs (beyond OBCX core deps).
+# These are used by OBCX's gen_vcpkg_manifest.py to generate vcpkg.json.
+# For non-vcpkg users, this also serves as documentation of required packages.
+# Examples: ["nlohmann-json", "sqlite3", "libxml2"]
 vcpkg_deps = []
