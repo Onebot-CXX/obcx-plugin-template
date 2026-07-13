@@ -1,82 +1,56 @@
-# OBCX Plugin Template
+# OBCX Actor Template
 
-A template repository for creating [OBCX](https://github.com/Onebot-CXX/OBCX) plugins.
+This repository is the canonical starting point for a native V2 OBCX actor
+package. It uses `IActorV2`, `ActorTask<ActorResult>`, `actor.toml`, the
+installed `obcx-sdk`, and `OBCXActor.cmake`; it contains no runtime adapter or
+alternate extension entry point.
 
-## Usage
+## Create An Actor
 
-Use this template to bootstrap a new OBCX plugin project:
+1. Copy or instantiate this repository as an actor-named project.
+2. Update every required field in `actor.toml`. Keep `actor.abi = 2`,
+   `artifact.kind = "shared-library"`, and
+   `artifact.entrypoint = "obcx_create_actor_v2"`.
+   List only built and verified release targets in `artifact.platforms`.
+3. Rename `ExampleActor`, its source files, and the `obcx_add_actor` target.
+   `artifact.target` must equal `<name>_actor`; `artifact.name` must equal the
+   helper's `OUTPUT_NAME`.
+4. Implement `handle_message` as an `ActorTask<ActorResult>`. Use
+   `ActorContext::await_asio` for network, timer, or other Asio suspension.
 
-1. Click **"Use this template"** on GitHub, or clone manually:
+## Build And Install
 
-   ```bash
-   git clone https://github.com/Onebot-CXX/obcx-plugin-template.git my-plugin
-   cd my-plugin
-   ```
+Install OBCX or point CMake to an SDK prefix, then run:
 
-2. Rename and edit files to match your plugin:
-   - Update `plugin.toml` with your plugin metadata
-   - Rename/replace `src/example_plugin.cpp` and `src/example_plugin.hpp`
-   - Update `CMakeLists.txt` (plugin name, sources, dependencies)
-
-3. Build (standalone):
-
-   ```bash
-   cmake -B build
-   cmake --build build
-   ```
-
-## Project Structure
-
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/obcx-sdk-prefix
+cmake --build build
+cmake --install build --prefix /path/to/actor-prefix
 ```
+
+The shared actor is installed under `lib/obcx/actors/` and its canonical
+metadata under `share/obcx/actors/<actor-id>/actor.toml`.
+
+## Dependencies
+
+Declare package-manager dependency names only in
+`[dependencies].packages` and actor dependencies only in
+`[dependencies].actors`. The OBCX vcpkg generator reads these canonical fields:
+
+```bash
+python3 cmake/gen_vcpkg_manifest.py actors.toml
+```
+
+Use ordinary `find_package()` calls and pass linked CMake targets through the
+`DEPS` argument of `obcx_add_actor`.
+
+## Layout
+
+```text
 .
-├── CMakeLists.txt      # Build configuration (find_package + obcx_add_plugin)
-├── plugin.toml         # Plugin metadata & dependency declarations
+├── actor.toml
+├── CMakeLists.txt
 └── src/
-    ├── example_plugin.cpp
-    └── example_plugin.hpp
+    ├── example_actor.cpp
+    └── example_actor.hpp
 ```
-
-## Dependency Management
-
-### Declaring Dependencies
-
-Edit `plugin.toml` to declare your plugin's external dependencies:
-
-```toml
-[build]
-# Package names your plugin needs (beyond OBCX core deps)
-vcpkg_deps = ["nlohmann-json", "sqlite3"]
-```
-
-In `CMakeLists.txt`, use standard CMake `find_package()`:
-
-```cmake
-obcx_add_plugin(my_plugin
-    SOURCES src/my_plugin.cpp
-    DEPS nlohmann_json::nlohmann_json unofficial::sqlite3::sqlite3
-)
-```
-
-### How Dependencies Are Resolved
-
-This plugin can be built in two ways:
-
-- **Standalone build**: You are responsible for making dependencies available — via vcpkg, system package manager, Nix, or any other method. `find_package()` does the discovery.
-
-- **Built via OBCX** (FetchContent / in-tree): OBCX reads your `plugin.toml`'s `vcpkg_deps` and merges them into the project's dependency set. Run the following in the OBCX root to regenerate `vcpkg.json`:
-
-  ```bash
-  python3 cmake/gen_vcpkg_manifest.py plugins.toml
-  ```
-
-The `vcpkg_deps` field is **not tied to vcpkg** — it simply lists package names. Non-vcpkg users can read it to know what to install.
-
-## Requirements
-
-- CMake >= 3.20
-- C++20 compatible compiler
-- OBCX SDK (installed or available via FetchContent)
-
-## License
-
-[MIT](LICENSE)
