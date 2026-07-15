@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(obcx_actor_example VERSION 0.1.0 LANGUAGES CXX)
 
 if(NOT TARGET obcx_core)

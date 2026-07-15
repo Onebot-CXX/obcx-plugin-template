@@ -1,17 +1,42 @@
 #pragma once
 
-#include "core/actor.hpp"
+#include "core/reflected_actor.hpp"
 
 namespace obcx::actors {
 
-class ExampleActor final : public core::IActorV2 {
-public:
-  [[nodiscard]] auto get_name() const -> std::string override;
-  [[nodiscard]] auto get_version() const -> std::string override;
+namespace events {
 
-  auto handle_message(const core::MessageEnvelope &message,
-                      core::ActorContext &context)
-      -> core::ActorTask<core::ActorResult> override;
+struct ExampleRequested {
+  std::string text;
+};
+
+struct ExampleHandled {
+  std::string text;
+};
+
+inline void from_json(const common::json &document,
+                      ExampleRequested &message) {
+  document.at("text").get_to(message.text);
+}
+
+inline void to_json(common::json &document, const ExampleRequested &message) {
+  document = {{"text", message.text}};
+}
+
+inline void to_json(common::json &document, const ExampleHandled &message) {
+  document = {{"text", message.text}};
+}
+
+} // namespace events
+
+class ExampleActor final : public core::ReflectedActor<ExampleActor> {
+public:
+  static constexpr std::string_view actor_name = "example";
+  static constexpr std::string_view actor_version = "0.1.0";
+
+  auto handle(const events::ExampleRequested &request,
+              const core::MessageEnvelope &message,
+              core::ActorContext &context) -> core::ActorResult;
 };
 
 } // namespace obcx::actors
