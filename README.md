@@ -64,6 +64,9 @@ library = "example"
 enabled = true
 partition = "conversation_id"
 
+[actors.example.config]
+id_prefix = "example"
+
 [pipelines.example]
 source = "obcx::actors::events::ExampleRequested"
 
@@ -74,6 +77,20 @@ input = "obcx::actors::events::ExampleRequested"
 output = "obcx::actors::events::ExampleHandled"
 mode = "await"
 ```
+
+Actor-owned configuration must be read from the immutable generation view:
+
+```cpp
+auto id_prefix = context.config()
+                     .get_value<std::string>("id_prefix")
+                     .value_or("example");
+```
+
+Keep any derived settings on the actor instance. Do not call
+`ConfigLoader::instance()`, use mutable namespace globals/function statics for
+configuration, or read configuration in the factory constructor. Bot
+connections and database instances are process-owned services and changing
+them requires a restart.
 
 ## Layout
 

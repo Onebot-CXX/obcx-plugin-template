@@ -14,8 +14,7 @@ struct ExampleHandled {
   std::string text;
 };
 
-inline void from_json(const common::json &document,
-                      ExampleRequested &message) {
+inline void from_json(const common::json &document, ExampleRequested &message) {
   document.at("text").get_to(message.text);
 }
 
@@ -35,8 +34,8 @@ public:
   static constexpr std::string_view actor_version = "0.1.0";
 
   auto handle(const events::ExampleRequested &request,
-              const core::MessageEnvelope &message,
-              core::ActorContext &context) -> core::ActorResult;
+              const core::MessageEnvelope &message, core::ActorContext &context)
+      -> core::ActorResult;
 };
 
 } // namespace obcx::actors
